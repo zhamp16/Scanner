@@ -1,11 +1,52 @@
-# Floor Plan Scanner - LiDAR-Powered iOS App
+# Floor Plan Scanner - LiDAR-Powered Applications
 
-A native iOS application that uses LiDAR technology to scan indoor spaces and generate accurate 2D floor plan layouts. Built with Swift, SwiftUI, ARKit, and RealityKit.
+Professional floor plan generation using LiDAR technology. This repository contains two implementations:
+
+1. **📱 Native iOS App** - Swift/ARKit native application
+2. **🌐 Web Application** - Browser-based WebXR solution (no installation required)
 
 ![iOS](https://img.shields.io/badge/iOS-14.0+-blue.svg)
 ![Swift](https://img.shields.io/badge/Swift-5.0-orange.svg)
 ![ARKit](https://img.shields.io/badge/ARKit-Scene%20Reconstruction-green.svg)
+![WebXR](https://img.shields.io/badge/WebXR-Device%20API-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)
+
+## Choose Your Version
+
+### 🌐 Web Application (Recommended for Quick Start)
+
+**Location:** `/web-app/`
+
+**Advantages:**
+- ✅ Zero installation - works directly in browser
+- ✅ Access via URL or local HTML file
+- ✅ Cross-platform (any LiDAR device)
+- ✅ Instant updates
+- ✅ No app store approval needed
+
+**[View Web App Documentation →](web-app/README.md)**
+
+**Quick Start:**
+```bash
+cd web-app
+open index.html  # Or serve via HTTP for full functionality
+```
+
+### 📱 Native iOS Application
+
+**Location:** `/FloorPlanScanner/`
+
+**Advantages:**
+- ✅ Native performance
+- ✅ Deeper ARKit integration
+- ✅ Offline capability
+- ✅ iOS-native UI/UX
+
+**[Continue to iOS App Documentation ↓](#ios-native-app)**
+
+---
+
+# iOS Native App
 
 ## Features
 
