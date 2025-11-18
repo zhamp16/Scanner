@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>LiDAR Floor Plan Scanner</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Main Navigation -->
+    <nav id="main-nav" class="nav-bar">
+        <div class="nav-content">
+            <h1 class="nav-title">Floor Plan Scanner</h1>
+            <button id="settings-btn" class="nav-btn" aria-label="Settings">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v6m0 6v6m-6-6h6m6 0h6"></path>
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Onboarding Screen -->
+    <div id="onboarding-screen" class="screen active">
+        <div class="onboarding-content">
+            <div class="onboarding-logo">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                    <rect x="10" y="10" width="60" height="60" stroke="#007AFF" stroke-width="3" rx="5"/>
+                    <line x1="20" y1="30" x2="60" y2="30" stroke="#007AFF" stroke-width="3"/>
+                    <line x1="40" y1="30" x2="40" y2="60" stroke="#007AFF" stroke-width="3"/>
+                </svg>
+            </div>
+            <h2>Welcome to LiDAR Floor Plan Scanner</h2>
+            <p class="onboarding-description">
+                Create accurate 2D floor plans using your device's LiDAR sensor.
+                No installation required - works directly in your browser.
+            </p>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-icon">📱</div>
+                    <div class="feature-text">
+                        <h3>Real-time Scanning</h3>
+                        <p>Watch as your space is captured in 3D</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📐</div>
+                    <div class="feature-text">
+                        <h3>Automatic Detection</h3>
+                        <p>Walls, doors, and dimensions detected automatically</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">💾</div>
+                    <div class="feature-text">
+                        <h3>Export & Share</h3>
+                        <p>Save as PDF, PNG, or SVG</p>
+                    </div>
+                </div>
+            </div>
+
+            <button id="start-btn" class="primary-btn large">Get Started</button>
+
+            <div class="requirements">
+                <h4>Requirements:</h4>
+                <ul>
+                    <li>iPhone 12 Pro or later / iPad Pro (2020+)</li>
+                    <li>Safari 15+ or Chrome 90+</li>
+                    <li>LiDAR sensor required</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scan List Screen -->
+    <div id="scan-list-screen" class="screen">
+        <div class="screen-header">
+            <h2>My Scans</h2>
+            <button id="new-scan-btn" class="primary-btn">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 5v10M5 10h10" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                New Scan
+            </button>
+        </div>
+
+        <div id="scan-list" class="scan-list">
+            <!-- Scans will be populated here -->
+        </div>
+
+        <div id="empty-state" class="empty-state">
+            <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
+                <rect x="20" y="20" width="60" height="60" stroke="#ccc" stroke-width="2" rx="5"/>
+                <line x1="30" y1="40" x2="70" y2="40" stroke="#ccc" stroke-width="2"/>
+                <line x1="50" y1="40" x2="50" y2="70" stroke="#ccc" stroke-width="2"/>
+            </svg>
+            <h3>No Scans Yet</h3>
+            <p>Create your first floor plan scan to get started</p>
+            <button class="primary-btn" onclick="document.getElementById('new-scan-btn').click()">
+                Create First Scan
+            </button>
+        </div>
+    </div>
+
+    <!-- Scanner Screen -->
+    <div id="scanner-screen" class="screen">
+        <!-- AR View Container -->
+        <div id="ar-container">
+            <canvas id="ar-canvas"></canvas>
+            <div id="ar-overlay">
+                <div class="scan-status">
+                    <div id="status-text">Initializing AR...</div>
+                    <div id="progress-bar">
+                        <div id="progress-fill"></div>
+                    </div>
+                </div>
+
+                <div id="scan-guidance" class="scan-guidance">
+                    <p>Point camera at walls and move slowly around the room</p>
+                </div>
+
+                <div id="point-count" class="metric-display">
+                    Points: <span id="point-count-value">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scanner Controls -->
+        <div class="scanner-controls">
+            <button id="cancel-scan-btn" class="control-btn secondary">Cancel</button>
+            <button id="scan-action-btn" class="control-btn primary large">Start Scanning</button>
+            <button id="finish-scan-btn" class="control-btn success" disabled>Generate Plan</button>
+        </div>
+    </div>
+
+    <!-- Processing Screen -->
+    <div id="processing-screen" class="screen">
+        <div class="processing-content">
+            <div class="spinner"></div>
+            <h2>Processing Scan Data</h2>
+            <p id="processing-status">Analyzing point cloud...</p>
+            <div class="processing-steps">
+                <div class="step" data-step="pointcloud">Building point cloud</div>
+                <div class="step" data-step="walls">Detecting walls</div>
+                <div class="step" data-step="doors">Finding openings</div>
+                <div class="step" data-step="floorplan">Generating floor plan</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floor Plan Viewer Screen -->
+    <div id="floorplan-screen" class="screen">
+        <div class="screen-header">
+            <button id="back-to-list-btn" class="icon-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <h2 id="floorplan-title">Floor Plan</h2>
+            <button id="export-btn" class="primary-btn">Export</button>
+        </div>
+
+        <div class="floorplan-container">
+            <canvas id="floorplan-canvas"></canvas>
+
+            <div class="floorplan-controls">
+                <button id="zoom-in-btn" class="icon-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/>
+                    </svg>
+                </button>
+                <button id="zoom-out-btn" class="icon-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35M8 11h6"/>
+                    </svg>
+                </button>
+                <button id="reset-view-btn" class="icon-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M1 4v6h6M23 20v-6h-6"/>
+                        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="floor-info">
+            <div class="info-card">
+                <h3>Dimensions</h3>
+                <div id="dimensions-list"></div>
+            </div>
+            <div class="info-card">
+                <h3>Total Area</h3>
+                <div id="total-area" class="area-value">-- m²</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="settings-screen" class="screen">
+        <div class="screen-header">
+            <button id="close-settings-btn" class="icon-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+            <h2>Settings</h2>
+        </div>
+
+        <div class="settings-content">
+            <div class="setting-group">
+                <h3>Units</h3>
+                <div class="setting-item">
+                    <label>Measurement Units</label>
+                    <select id="units-select">
+                        <option value="metric">Metric (meters)</option>
+                        <option value="imperial">Imperial (feet)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>Scanning</h3>
+                <div class="setting-item">
+                    <label>Point Cloud Quality</label>
+                    <select id="quality-select">
+                        <option value="low">Low (faster)</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High (slower)</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>Show Scan Guidance</label>
+                    <input type="checkbox" id="guidance-toggle" checked>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>Storage</h3>
+                <div class="setting-item">
+                    <button id="clear-data-btn" class="danger-btn">Clear All Scans</button>
+                    <p class="help-text">This will permanently delete all saved scans</p>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>About</h3>
+                <div class="info-text">
+                    <p><strong>Version:</strong> 1.0.0</p>
+                    <p><strong>Browser:</strong> <span id="browser-info"></span></p>
+                    <p><strong>WebXR Support:</strong> <span id="webxr-support"></span></p>
+                    <p><strong>Depth Sensing:</strong> <span id="depth-support"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="export-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Export Floor Plan</h3>
+                <button class="close-modal" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="export-options">
+                    <button class="export-option" data-format="png">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor">
+                            <rect x="8" y="8" width="32" height="32" rx="2"/>
+                            <circle cx="16" cy="16" r="2"/>
+                            <path d="M8 32l8-8 4 4 8-8 12 12"/>
+                        </svg>
+                        <span>PNG Image</span>
+                    </button>
+                    <button class="export-option" data-format="svg">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor">
+                            <path d="M8 8h32v32H8z"/>
+                            <path d="M16 20l8-8 8 8M16 28l8 8 8-8"/>
+                        </svg>
+                        <span>SVG Vector</span>
+                    </button>
+                    <button class="export-option" data-format="pdf">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor">
+                            <path d="M12 4h20l8 8v32H12z"/>
+                            <path d="M32 4v8h8"/>
+                            <text x="14" y="30" font-size="10" fill="currentColor">PDF</text>
+                        </svg>
+                        <span>PDF Document</span>
+                    </button>
+                    <button class="export-option" data-format="json">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor">
+                            <path d="M12 8h24v32H12z"/>
+                            <text x="16" y="28" font-size="8" fill="currentColor">{...}</text>
+                        </svg>
+                        <span>JSON Data</span>
+                    </button>
+                </div>
+
+                <div class="export-settings">
+                    <div class="setting-item">
+                        <label for="export-name">File Name:</label>
+                        <input type="text" id="export-name" placeholder="floor-plan">
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="include-dimensions" checked>
+                            Include dimensions
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="include-labels" checked>
+                            Include labels
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn close-modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error/Alert Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Feature Detection Message -->
+    <div id="unsupported-message" class="unsupported-message" style="display: none;">
+        <div class="unsupported-content">
+            <h2>WebXR Not Supported</h2>
+            <p>This device or browser doesn't support WebXR with depth sensing.</p>
+            <h3>Requirements:</h3>
+            <ul>
+                <li>iPhone 12 Pro or later / iPad Pro (2020+) with LiDAR</li>
+                <li>Safari 15+ or Chrome 90+</li>
+                <li>HTTPS connection (or localhost)</li>
+            </ul>
+            <p class="help-text">If you meet these requirements, ensure camera permissions are granted.</p>
+        </div>
+    </div>
+
+    <!-- Include Three.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+
+    <!-- Include jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Application JavaScript Modules -->
+    <script type="module" src="js/utils.js"></script>
+    <script type="module" src="js/storage-manager.js"></script>
+    <script type="module" src="js/webxr-manager.js"></script>
+    <script type="module" src="js/point-cloud-builder.js"></script>
+    <script type="module" src="js/wall-detector.js"></script>
+    <script type="module" src="js/floor-plan-generator.js"></script>
+    <script type="module" src="js/floor-plan-renderer.js"></script>
+    <script type="module" src="js/export-manager.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
